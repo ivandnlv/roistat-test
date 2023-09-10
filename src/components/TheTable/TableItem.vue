@@ -1,22 +1,25 @@
 <template>
   <div class="table__row table-item">
-    <div class="table__row-item" v-if="!isChild">
-      <button v-if="tableItem.children" @click="changeAllChildrenVisible">hide</button>
-      {{ tableItem.name }}
-    </div>
-    <div
-      class="table__row-item"
-      v-else-if="isChild && isShowAllChildren"
-      :style="`padding-left: ${padding}px`"
-    >
-      <button v-if="tableItem.children" @click="changeAllChildrenVisible">hide</button>
+    <div class="table__row-item" :style="padding ? `padding-left: ${padding}px` : ''">
+      <button class="table__btn" v-if="tableItem.children" @click="toggleChildrenVisible">+</button>
       {{ tableItem.name }}
     </div>
     <div class="table__row-item">{{ tableItem.phone }}</div>
 
     <div v-if="tableItem.children && isShowAllChildren">
-      <div class="table__row" v-for="(child, i) in tableItem.children" :key="i">
-        <table-item :tableItem="child" isChild :padding="padding ? padding + 10 : 30" />
+      <div class="table__row" v-for="child in tableItem.children" :key="child.id">
+        <table-item
+          :tableItem="child"
+          isChild
+          :padding="
+            child.children && padding
+              ? padding + 10
+              : !child.children && padding
+              ? padding + 20
+              : 20
+          "
+          @toggle-children="toggleChildren"
+        />
       </div>
     </div>
   </div>
@@ -28,22 +31,25 @@ export default {
   props: {
     tableItem: {
       type: Object,
-      require: true,
+      required: true,
     },
     isChild: {
       type: Boolean,
-      require: false,
+      required: false,
     },
     padding: {
       type: Number,
-      require: false,
+      required: false,
     },
   },
   data: () => ({
     isShowAllChildren: true,
   }),
   methods: {
-    changeAllChildrenVisible() {
+    toggleChildrenVisible() {
+      this.isShowAllChildren = !this.isShowAllChildren;
+    },
+    toggleChildren() {
       this.isShowAllChildren = !this.isShowAllChildren;
     },
   },
@@ -51,9 +57,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.table__row-item {
-  &.child {
-    padding-left: 30px;
-  }
+.table__btn {
+  cursor: pointer;
+  font-size: 1em;
+  background: none;
+  border: none;
 }
 </style>

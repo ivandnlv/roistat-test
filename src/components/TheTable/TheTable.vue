@@ -7,7 +7,7 @@
       </div>
     </div>
     <div class="table__body">
-      <table-item v-for="(item, i) in tableState.table" :key="i" :table-item="item" />
+      <table-item v-for="item in tableState.table" :key="item.id" :table-item="item" />
     </div>
   </div>
 </template>
@@ -32,7 +32,6 @@ $border: 1px solid #ccc;
 
 .table {
   border-collapse: collapse;
-  width: 100%;
   border: $border;
   &__row {
     display: flex;
