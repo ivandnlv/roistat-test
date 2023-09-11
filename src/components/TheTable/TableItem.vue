@@ -1,41 +1,32 @@
 <template>
   <div class="table__row table-item">
-    <div class="table__row-item" :style="padding ? `padding-left: ${padding}px` : ''">
-      <button class="table__btn" v-if="tableItem.children" @click="toggleChildrenVisible">+</button>
-      {{ tableItem.name }}
+    <div class="table__row-item" :style="`padding-left: ${padding}px`">
+      <button v-if="isHaveChildren" @click="onBtnClick" class="table__btn">
+        {{ children && children.length ? '-' : '+' }}
+      </button>
+      {{ contact.name }}
     </div>
-    <div class="table__row-item">{{ tableItem.phone }}</div>
-
-    <div v-if="tableItem.children && isShowAllChildren">
-      <div class="table__row" v-for="child in tableItem.children" :key="child.id">
-        <table-item
-          :tableItem="child"
-          isChild
-          :padding="
-            child.children && padding
-              ? padding + 10
-              : !child.children && padding
-              ? padding + 20
-              : 20
-          "
-          @toggle-children="toggleChildren"
-        />
-      </div>
+    <div class="table__row-item">{{ contact.phone }}</div>
+    <div v-if="children && children.length">
+      <table-item
+        v-for="contact in children"
+        :padding="padding ? padding + 20 : 20"
+        :contact="contact"
+        :key="contact.id"
+      />
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'table-item',
   props: {
-    tableItem: {
+    contact: {
       type: Object,
       required: true,
-    },
-    isChild: {
-      type: Boolean,
-      required: false,
     },
     padding: {
       type: Number,
@@ -43,14 +34,44 @@ export default {
     },
   },
   data: () => ({
-    isShowAllChildren: true,
+    isHaveChildren: false,
+    children: null,
   }),
+  computed: {
+    ...mapState(['contacts']),
+  },
   methods: {
-    toggleChildrenVisible() {
-      this.isShowAllChildren = !this.isShowAllChildren;
+    getChildren() {
+      let children = null;
+      if (this.contacts.sortedItems) {
+        children = this.contacts.sortedItems.filter(
+          (contact) => contact?.parentId === this.contact.id,
+        );
+      } else {
+        children = this.contacts.items.filter((contact) => contact?.parentId === this.contact.id);
+      }
+
+      if (children.length) {
+        this.isHaveChildren = true;
+      }
+      return children;
     },
-    toggleChildren() {
-      this.isShowAllChildren = !this.isShowAllChildren;
+    onBtnClick() {
+      if (this.children && this.children.length) {
+        this.children = null;
+      } else {
+        this.children = this.getChildren();
+      }
+    },
+  },
+  created() {
+    this.children = this.getChildren();
+  },
+  watch: {
+    'contacts.items': {
+      handler() {
+        this.children = this.getChildren();
+      },
     },
   },
 };
